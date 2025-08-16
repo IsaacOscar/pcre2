@@ -9114,6 +9114,15 @@ if (dat_datctl.replacement[0] != 0)
           }
       }
 
+    // SANITY CHECK
+    if (arg_ulen == PCRE2_ZERO_TERMINATED) {
+      PCRE2_SIZE n = STRLEN(pp);
+      //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\nmatch %p = \"%s\"[%zu]\n", pp, (char*)pp, n); 
+    } else {
+      for (PCRE2_SIZE i = 0; i < arg_ulen*code_unit_size; i++) (void)pp[i];
+      //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\nmatch %p = \"%*.*s\"[%zu]\n", pp, (int)arg_ulen, (int)arg_ulen, (char*)pp, arg_ulen); 
+    }
+
     if ((pat_patctl.control & CTL_JITFAST) != 0)
       {
       PCRE2_JIT_MATCH(rc, compiled_code, pp, arg_ulen, dat_datctl.offset,
@@ -9214,6 +9223,30 @@ if (dat_datctl.replacement[0] != 0)
   if (malloc_testing) CLEAR_HEAP_FRAMES();
   mallocs_called = 0;
   nsize_input = nsize;
+  
+  // SANITY CHECK
+  if ((dat_datctl.options & PCRE2_COPY_MATCHED_SUBJECT) != 0) {
+    uint8_t *p = CASTFLD(uint8_t *, match_data, subject);
+    if (p == NULL)
+    {
+      //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\ncopy = NULL\n"); 
+    }
+    else
+    {
+    PCRE2_SIZE n = FLD(match_data, subject_length)*code_unit_size;
+    //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\ncopy %p = \"%*.*s\"[%zu]\n", p, (int)n, (int)n, (char*)p, n); 
+    for (PCRE2_SIZE i = 0; i < n; i++) (void)p[i];
+    }
+  }
+
+  // SANITY CHECK
+    if (slen == PCRE2_ZERO_TERMINATED) {
+      PCRE2_SIZE n = STRLEN(sbptr);
+      //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\nsubstitute %p = \"%s\"[%zu]\n", sbptr, (char*)sbptr, n); 
+    } else {
+      for (PCRE2_SIZE i = 0; i < slen*code_unit_size; i++) (void)sbptr[i];
+      //;cprintf(clr_profiling,(CLR_DEBUG, outfile, "\nsubstitute %p = \"%*.*s\"[%zu]\n", sbptr, (int)slen, (int)slen, (char*)sbptr, slen); 
+    }
   PCRE2_SUBSTITUTE(rc, compiled_code, sbptr, slen,
     dat_datctl.substitute_offset < PCRE2_SIZE_MAX ? dat_datctl.substitute_offset : dat_datctl.offset,
     xoptions, match_data, use_dat_context,
